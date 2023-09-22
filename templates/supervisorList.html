@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Admin Login | TARUMT</title>
+    <title>Admin Profile | TARUMT</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -55,6 +55,23 @@
     />
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <style>
+      td,
+      th {
+        padding: 10px;
+        border: 1px solid #dddddd;
+        text-align: center;
+      }
+
+      th {
+        background-color: #dddddd;
+      }
+      /* 
+      td {
+        text-align: center;
+      } */
+    </style>
   </head>
 
   <body>
@@ -88,82 +105,72 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <div class="navbar-nav ms-auto p-4 p-lg-0">
-          <a href="/" class="nav-item nav-link active">Home</a>
-          <a href="/student" class="nav-item nav-link">Student</a>
-          <a href="/supervisor" class="nav-item nav-link">Supervisor</a>
-          <a href="/company" class="nav-item nav-link">Company</a>
-          <a href="/admin" class="nav-item nav-link">Admin</a>
+          <a href="/admin/{{ admin_id }}" class="nav-item nav-link active"
+            >Home</a
+          >
+          <a href="/admin/companyList" class="nav-item nav-link"
+            >Company List</a
+          >
+          <a href="/admin/supervisorList" class="nav-item nav-link"
+            >Supervisor List</a
+          >
         </div>
+        <a
+          href="/adminProfile"
+          class="btn btn-primary py-4 px-lg-5 d-none d-lg-block"
+          >Profile<i class="fa fa-user ms-3"></i
+        ></a>
       </div>
     </nav>
     <!-- Navbar End -->
 
     <!-- Login Start -->
     <div
-      class="container-fluid bg-light overflow-hidden px-lg-0"
-      style="height: calc(100vh - 75px)"
+      class="bg-light"
+      style="height: calc(100vh - 75px); width: 100%; overflow: scroll"
     >
-      <div class="container quote px-lg-0">
-        <div class="row g-0 mx-lg-0" style="height: calc(100vh - 75px)">
-          <div
-            class="col-lg-6 ps-lg-0"
-            style="min-height: 400px; background-color: white"
-          >
-            <div class="position-relative h-100">
-              <img
-                class="position-absolute img-fluid w-100 h-100"
-                src="{{ url_for('static', filename='img/internshipworddle.jpg/') }}"
-                style="object-fit: contain"
-                alt=""
-              />
-            </div>
-          </div>
-          <div
-            class="col-lg-6 quote-text wow fadeIn d-flex align-items-center justify-content-center px-0"
-            data-wow-delay="0.5s"
-          >
-            <div class="pe-lg-0" style="max-width: 700px">
-              <div class="section-title text-start">
-                <h1 class="display-5 mb-4">Admin Login</h1>
-              </div>
-              <p class="mb-4 pb-2">
-                Please enter your id and password to login.
-              </p>
-              <form action="/login">
-                <div class="row g-3">
-                  <div class="col-12">
-                    <input
-                      id="admin_id"
-                      name="admin_id"
-                      type="text"
-                      class="form-control border-0"
-                      placeholder="Your ID"
-                      style="height: 55px"
-                    />
-                  </div>
-                  <div class="col-12">
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      class="form-control border-0"
-                      placeholder="Your Password"
-                      style="height: 55px"
-                    />
-                  </div>
-                  <div id="alert-container" class="col-12 d-none">
-                    <p id="alert-text" class="text-danger">{{ msg }}</p>
-                  </div>
-                  <div class="col-12">
-                    <button class="btn btn-primary w-100 py-3" type="submit">
-                      Login
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+      <h1 style="margin-top: 30px; margin-left: 50px; margin-bottom: 30px">
+        Supervisor List
+      </h1>
+      <div
+        class="d-flex"
+        style="justify-content: end; padding: 0 50px; margin-bottom: 30px"
+      >
+        <button class="btn btn-primary py-3" style="width: 300px">
+          Add Supervisor
+        </button>
+      </div>
+      <div style="display: flex; padding: 0 50px">
+        {% if supervisors %}
+        <table style="width: 100%; border-collapse: collapse">
+          <thead>
+            <tr>
+              <th>Supervisor ID</th>
+              <th>Name</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for supervisor in supervisors %}
+            <tr>
+              <td>{{ supervisor[0] }}</td>
+              <td>{{ supervisor[2] }}</td>
+              <td>{{ supervisor[3] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>No supervisor found.</p>
+        {% endif %}
+        <!-- 
+        <table style="width: 100%; border-collapse: collapse">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+          </tr>
+        </table> -->
       </div>
     </div>
     <!-- Login End -->
@@ -183,17 +190,7 @@
     <script src="{{ url_for('static', filename='js/main.js/') }}"></script>
 
     <script>
-      // Get msg and type from url
-      const urlParams = new URLSearchParams(window.location.search);
-      const msg = urlParams.get('msg');
-
-      // If msg and type exist, show alert
-      if (msg) {
-        const alert = document.getElementById('alert-container');
-        alert.classList.remove('d-none');
-        const alertp = document.getElementById('alert-text');
-        alertp.innerHTML = msg;
-      }
+      console.log('{{ supervisors }}');
     </script>
   </body>
 </html>
