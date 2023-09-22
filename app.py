@@ -32,11 +32,6 @@ def about():
 def student():
     return render_template('student.html')
 
-# Route to admin home page
-@app.route("/admin/<admin_id>")
-def admin(admin_id):
-    return render_template('admin.html', admin_id=admin_id)
-
 # Route to admin login page
 @app.route("/adminLogin")
 def adminLogin(msg=""):
@@ -60,23 +55,25 @@ def adminProfile(admin_id):
     return render_template('adminProfile.html', admin_id=admin_id, account=account)
 
 # Route to company list page
-@app.route("/admin/companyList", methods=['GET'])
-def companyList():
+@app.route("/admin/<admin_id>/companyList", methods=['GET'])
+def companyList(admin_id):
     # Connect to MySQL database
     cursor = db_conn.cursor()
 
     try:
-        # Get all supervisor data from database
+        # Get all company data from database
         cursor.execute('SELECT * FROM company')
         companies = cursor.fetchall()
     finally:
         cursor.close()
 
-    return render_template('companyList.html', companies=companies)
+    print(companies)
+
+    return render_template('companyList.html', companies=companies, admin_id=admin_id)
 
 # Route to supervisor list page
-@app.route("/admin/supervisorList", methods=['GET'])
-def supervisorList():
+@app.route("/admin/<admin_id>/supervisorList", methods=['GET'])
+def supervisorList(admin_id):
     # Connect to MySQL database
     cursor = db_conn.cursor()
 
@@ -87,13 +84,35 @@ def supervisorList():
     finally:
         cursor.close()
 
-    return render_template('supervisorList.html', supervisors=supervisors)
+    return render_template('supervisorList.html', supervisors=supervisors, admin_id=admin_id)
+
+# Route to add supervisor page
+@app.route("/admin/<admin_id>/addSupervisor", methods=['GET'])
+def addSupervisor(admin_id):
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+        # Get last supervisor id from database
+        cursor.execute('SELECT id FROM supervisor ORDER BY id DESC LIMIT 1')
+        last_supervisor_id = cursor.fetchone()
+    finally:
+        cursor.close()
+
+    # Change tuple to integer
+    last_supervisor_id = int(last_supervisor_id[0])
+
+    # Increment last supervisor id by 1
+    new_supervisor_id = last_supervisor_id + 1
+
+    # Change integer back to six character string
+    new_supervisor_id = str(new_supervisor_id).zfill(6)
+
+    return render_template('addSupervisor.html', admin_id=admin_id, new_supervisor_id=new_supervisor_id)
 
 # Admin edit profile function
 @app.route("/editProfile/<admin_id>")
 def editProfile(admin_id):
-    print(admin_id);
-
     # Get user input name, email and phone number from HTML form
     name = request.args.get('name')
     email = request.args.get('email')
@@ -133,7 +152,7 @@ def login():
         # Check if password correct
         if password == account[4]:
             # If password correct, redirect to admin page
-            return redirect(url_for('admin', admin_id=admin_id))
+            return redirect(url_for('adminProfile', admin_id=admin_id))
         else:
             # If password incorrect, redirect to admin login page with error message
             msg = 'Account exists but password incorrect'
@@ -147,6 +166,73 @@ def login():
 @app.route("/adminLogout")
 def adminLogout():
     return redirect(url_for('adminLogin'))
+
+# Admin accept company function
+@app.route("/<admin_id>/acceptCompany/<company_id>")
+def acceptCompany(admin_id, company_id):
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+        # Update company status in database
+        cursor.execute('UPDATE company SET status = %s, isReviewed = 1 WHERE id = %s', ('ACCEPTED', company_id))
+        db_conn.commit()
+
+        # Get all company data from database
+        cursor.execute('SELECT * FROM company')
+        companies = cursor.fetchall()
+    finally:
+        cursor.close()
+
+    return redirect(url_for('companyList', admin_id=admin_id))
+
+# Admin reject company function
+@app.route("/<admin_id>/rejectCompany/<company_id>")
+def rejectCompany(admin_id, company_id):
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+        # Update company status in database
+        cursor.execute('UPDATE company SET status = %s, isReviewed = 1 WHERE id = %s', ('REJECTED', company_id))
+        db_conn.commit()
+
+        # Get all company data from database
+        cursor.execute('SELECT * FROM company')
+        companies = cursor.fetchall()
+    finally:
+        cursor.close()
+
+    return redirect(url_for('companyList', admin_id=admin_id))
+
+# Admin add supervisor function
+@app.route("/addSupervisor/<admin_id>/<supervisor_id>", methods=['GET', 'POST'])
+def addSupervisorFunc(admin_id, supervisor_id):
+    # Get user input name, email, phone number and password from HTML form
+    name = request.args.get('name')
+    email = request.args.get('email')
+    phone = request.args.get('phone')
+    password = request.args.get('password')
+
+    print(supervisor_id)
+
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+        # Insert supervisor data into database
+        cursor.execute('INSERT INTO supervisor VALUES (%s, %s, %s, %s, %s)', (supervisor_id, password, name, email, phone))
+        db_conn.commit()
+
+        print('Supervisor added successfully')
+
+        # Get all supervisor data from database
+        cursor.execute('SELECT * FROM supervisor')
+        supervisors = cursor.fetchall()
+    finally:
+        cursor.close()
+
+    return redirect(url_for('supervisorList', admin_id=admin_id))
 
 @app.route("/xy")
 def xyPortfolio():

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Admin Profile | TARUMT</title>
+    <title>Add Supervisor | TARUMT</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -55,6 +55,23 @@
     />
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <style>
+      /* td,
+      th {
+        padding: 10px;
+        border: 1px solid #dddddd;
+        text-align: center;
+      }
+
+      th {
+        background-color: #dddddd;
+      } */
+      /* 
+      td {
+        text-align: center;
+      } */
+    </style>
   </head>
 
   <body>
@@ -93,7 +110,7 @@
           >
           <a
             href="/admin/{{ admin_id }}/supervisorList"
-            class="nav-item nav-link"
+            class="nav-item nav-link active"
             >Supervisor List</a
           >
         </div>
@@ -106,7 +123,7 @@
     </nav>
     <!-- Navbar End -->
 
-    <!-- Profile Start -->
+    <!-- Add Supervisor Start -->
     <div
       class="container-fluid bg-light overflow-hidden px-lg-0"
       style="height: calc(100vh - 75px)"
@@ -121,32 +138,37 @@
         >
           <div class="pe-lg-0" style="max-width: 700px">
             <div class="section-title text-start">
-              <h1 class="display-5 mb-4">Profile</h1>
+              <h1 class="display-5 mb-4">Add Supervisor</h1>
             </div>
-            <form action="/editProfile/{{ admin_id }}">
+            <form
+              action="/addSupervisor/{{ admin_id }}/{{ new_supervisor_id }}"
+            >
               <div class="row g-3">
                 <div class="col-12">
-                  <label for="id" style="margin-bottom: 10px">Admin ID:</label>
+                  <label for="id" style="margin-bottom: 10px"
+                    >Supervisor ID:</label
+                  >
                   <input
                     id="id"
                     name="id"
                     type="text"
                     class="form-control border-0"
-                    placeholder="Your Email"
-                    value="{{ admin_id }}"
+                    placeholder="Your ID"
                     style="height: 55px"
+                    value="{{ new_supervisor_id }}"
                     disabled
                   />
                 </div>
                 <div class="col-12">
-                  <label for="name" style="margin-bottom: 10px">Name:</label>
+                  <label for="name" style="margin-bottom: 10px"
+                    >Supervisor Name:</label
+                  >
                   <input
                     id="name"
                     name="name"
                     type="text"
                     class="form-control border-0"
-                    placeholder="Your Name"
-                    value="{{ account[1] }}"
+                    placeholder="Supervisor Name"
                     style="height: 55px"
                   />
                   <div id="name-alert-container" class="col-12 d-none">
@@ -158,14 +180,15 @@
                   </div>
                 </div>
                 <div class="col-12">
-                  <label for="email" style="margin-bottom: 10px">Email:</label>
+                  <label for="email" style="margin-bottom: 10px"
+                    >Supervisor Email:</label
+                  >
                   <input
                     id="email"
                     name="email"
                     type="email"
                     class="form-control border-0"
-                    placeholder="Your Email"
-                    value="{{ account[2] }}"
+                    placeholder="Supervisor Email"
                     style="height: 55px"
                   />
                   <div id="email-alert-container" class="col-12 d-none">
@@ -178,15 +201,14 @@
                 </div>
                 <div class="col-12">
                   <label for="email" style="margin-bottom: 10px"
-                    >Phone Number:</label
+                    >Supervisor Phone Number:</label
                   >
                   <input
                     id="phone"
                     name="phone"
                     type="phone"
                     class="form-control border-0"
-                    placeholder="Your Phone Number"
-                    value="{{ account[3] }}"
+                    placeholder="Supervisor Phone Number"
                     style="height: 55px"
                   />
                   <div id="phone-alert-container" class="col-12 d-none">
@@ -198,33 +220,42 @@
                   </div>
                 </div>
                 <div class="col-12">
+                  <label for="password" style="margin-bottom: 10px"
+                    >Supervisor Password:</label
+                  >
+                  <input
+                    id="password"
+                    name="password"
+                    type="text"
+                    class="form-control border-0"
+                    placeholder="Supervisor Password"
+                    style="height: 55px"
+                  />
+                  <div id="password-alert-container" class="col-12 d-none">
+                    <p
+                      id="password-alert-text"
+                      class="text-danger"
+                      style="margin-bottom: 0"
+                    ></p>
+                  </div>
+                </div>
+                <div class="col-12">
                   <button
                     id="submit-button"
                     class="btn btn-primary w-100 py-3"
                     type="submit"
-                    onclick="return submitEdit()"
+                    onclick="return submitAdd()"
                   >
-                    Edit Profile
+                    Add Supervisor
                   </button>
                 </div>
-              </div>
-            </form>
-            <form action="/adminLogout">
-              <div class="col-12" style="margin-top: 50px">
-                <button
-                  id="submit-button"
-                  class="btn btn-danger w-100 py-3"
-                  type="submit"
-                >
-                  Logout
-                </button>
               </div>
             </form>
           </div>
         </div>
       </div>
     </div>
-    <!-- Profile End -->
+    <!-- Add Supervisor End -->
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -241,21 +272,26 @@
     <script src="{{ url_for('static', filename='js/main.js/') }}"></script>
 
     <script>
-      function submitEdit() {
+      function submitAdd() {
         // Select input fields
         const nameInput = document.getElementById('name');
         const emailInput = document.getElementById('email');
         const phoneInput = document.getElementById('phone');
+        const passwordInput = document.getElementById('password');
 
         // Select alert container
         const nameAlert = document.getElementById('name-alert-container');
         const emailAlert = document.getElementById('email-alert-container');
         const phoneAlert = document.getElementById('phone-alert-container');
+        const passwordAlert = document.getElementById(
+          'password-alert-container',
+        );
 
         // Select alert p
         const nameP = document.getElementById('name-alert-text');
         const emailP = document.getElementById('email-alert-text');
         const phoneP = document.getElementById('phone-alert-text');
+        const passwordP = document.getElementById('password-alert-text');
 
         if (nameInput.value === '') {
           nameAlert.classList.remove('d-none');
@@ -279,6 +315,18 @@
           return false;
         } else {
           phoneAlert.classList.add('d-none');
+        }
+
+        if (passwordInput.value === '') {
+          passwordAlert.classList.remove('d-none');
+          passwordP.innerHTML = 'Please enter your password!';
+          return false;
+        } else if (passwordInput.value.length < 8) {
+          passwordAlert.classList.remove('d-none');
+          passwordP.innerHTML = 'Password must be at least 8 characters!';
+          return false;
+        } else {
+          passwordAlert.classList.add('d-none');
         }
 
         return true;
