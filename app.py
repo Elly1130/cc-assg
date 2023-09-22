@@ -59,6 +59,21 @@ def adminProfile(admin_id):
 
     return render_template('adminProfile.html', admin_id=admin_id, account=account)
 
+# Route to company list page
+@app.route("/admin/companyList", methods=['GET'])
+def companyList():
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+        # Get all supervisor data from database
+        cursor.execute('SELECT * FROM company')
+        companies = cursor.fetchall()
+    finally:
+        cursor.close()
+
+    return render_template('companyList.html', companies=companies)
+
 # Route to supervisor list page
 @app.route("/admin/supervisorList", methods=['GET'])
 def supervisorList():
@@ -128,6 +143,10 @@ def login():
         msg = 'Account does not exists'
         return render_template('adminLogin.html', msg=msg)
     
+# Admin logout function
+@app.route("/adminLogout")
+def adminLogout():
+    return redirect(url_for('adminLogin'))
 
 @app.route("/xy")
 def xyPortfolio():
