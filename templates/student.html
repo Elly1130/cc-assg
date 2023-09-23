@@ -3,7 +3,198 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Customized Bootstrap Stylesheet -->
+    <link
+      href="{{ url_for('static', filename='css/bootstrap.min.css/') }}"
+      rel="stylesheet"
+    />
+    <!-- Favicon -->
+    <link href="{{ url_for('static', filename='img/logo.png/') }}" rel="icon" />
     <title>Student | TARUMT</title>
+
+    <!-- Favicon -->
+    <link href="{{ url_for('static', filename='img/logo.png/') }}" rel="icon" />
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icon Font Stylesheet -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <!-- Libraries Stylesheet -->
+    <link
+      href="{{ url_for('static', filename='lib/animate/animate.min.css/') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='lib/owlcarousel/assets/owl.carousel.min.css/') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='lib/lightbox/css/lightbox.min.css/') }}"
+      rel="stylesheet"
+    />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link
+      href="{{ url_for('static', filename='css/bootstrap.min.css/') }}"
+      rel="stylesheet"
+    />
+
+    <!-- Template Stylesheet -->
+    <link
+      href="{{ url_for('static', filename='css/style.css/') }}"
+      rel="stylesheet"
+    />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   </head>
-  <body></body>
+
+  <body>
+    <!-- Navbar Start -->
+    <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0">
+      <a href="/" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
+        <h2 class="m-0 text-primary">TARUMT ITP</h2>
+      </a>
+      <button
+        type="button"
+        class="navbar-toggler me-4"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarCollapse"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="navbar-nav ms-auto p-4 p-lg-0">
+          <a href="/student/{{ account[0] }}" class="nav-item nav-link">Home</a>
+        </div>
+        <a
+          href="/studentProfile/{{ account[0] }}"
+          class="btn btn-primary py-4 px-lg-5 d-none d-lg-block"
+          >Profile<i class="fa fa-user ms-3"></i
+        ></a>
+      </div>
+    </nav>
+    <!-- Navbar End -->
+
+    {% if success_message %}
+    <!-- Toast Message -->
+    <div
+      class="toast position-fixed top-0 start-50 translate-middle-x"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      style="z-index: 1000"
+    >
+      <div class="toast-header bg-success text-white">
+        <strong class="me-auto">Success</strong>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="toast"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="toast-body">{{ success_message }}</div>
+    </div>
+    {% endif %}
+
+    <div
+      class="bg-light"
+      style="height: calc(100vh - 75px); width: 100%; overflow: scroll"
+    >
+      <h1 style="margin-top: 30px; margin-left: 50px; margin-bottom: 30px">
+        Select Supervisor
+      </h1>
+      <div
+        class="d-flex"
+        style="justify-content: end; padding: 0 50px; margin-bottom: 30px"
+      >
+        <div class="" style="width: 300px"></div>
+      </div>
+    </div>
+
+    <div class="container my-4">
+      <form method="POST" action="/select-supervisor">
+        <input type="hidden" name="id" value="{{ account[0] }}" />
+        <div class="mb-3">
+          <label for="supervisor" class="form-label"
+            >Choose a Supervisor:</label
+          >
+          <select
+            name="supervisor"
+            id="supervisor"
+            class="form-select"
+            {%
+            if
+            account[9]
+            %}
+            disabled
+            {%
+            endif
+            %}
+          >
+            <option value="" selected disabled hidden>Choose here</option>
+            <!-- If supervisor selected -->
+            {% if account[9] %}
+            <option value="{{ account[9] }}" selected>{{ account[10] }}</option>
+            {% else %} {% for supervisor in supervisors %}
+            <option value="{{ supervisor[0] }}">{{ supervisor[1] }}</option>
+            {% endfor %} {% endif %}
+          </select>
+        </div>
+        {% if not account[9] %}
+        <button type="submit" class="btn btn-primary text-white">
+          Select Supervisor
+        </button>
+        {% endif %} {% if account[9] %}
+        <button type="submit" class="btn btn-primary text-white" disabled>
+          Select Supervisor
+        </button>
+        {% endif %} {% if not account[9] %} {% endif %}
+      </form>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='lib/wow/wow.min.js/') }}"></script>
+    <script src="{{ url_for('static', filename='lib/easing/easing.min.js/') }}"></script>
+    <script src="{{ url_for('static', filename='lib/waypoints/waypoints.min.js/') }}"></script>
+    <script src="{{ url_for('static', filename='lib/counterup/counterup.min.js/') }}"></script>
+    <script src="{{ url_for('static', filename='lib/owlcarousel/owl.carousel.min.js/') }}"></script>
+    <script src="{{ url_for('static', filename='lib/isotope/isotope.pkgd.min.js/') }}"></script>
+    <script src="{{ url_for('static', filename='lib/lightbox/js/lightbox.min.js/') }}"></script>
+
+    <!-- Template Javascript -->
+    <script src="{{ url_for('static', filename='js/main.js/') }}"></script>
+    <script>
+      // JavaScript to enable the edit button and the "Select Supervisor" button
+      document.addEventListener('DOMContentLoaded', function () {
+        var editBtn = document.getElementById('edit-supervisor');
+        var supervisorSelect = document.getElementById('supervisor');
+        var selectSupervisorBtn = document.querySelector(
+          "button[type='submit']",
+        );
+
+        editBtn.addEventListener('click', function (event) {
+          event.preventDefault();
+          supervisorSelect.removeAttribute('disabled');
+          selectSupervisorBtn.removeAttribute('disabled');
+        });
+      });
+    </script>
+  </body>
 </html>
