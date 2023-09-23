@@ -193,7 +193,7 @@ def upload_file(student_id):
     s3_client.upload_fileobj(file, 'chongxinyi-bucket', s3_key)
     
     # Update the resume column in the student table with correct column name
-    s3_url = f"https://s3.us-east-1.amazonaws.com/{custombucket}.s3.{customregion}.amazonaws.com/{s3_key}"
+    s3_url = f"https://{custombucket}.s3.{customregion}.amazonaws.com/{s3_key}"
     
     cursor = db_conn.cursor()
     try:
@@ -234,7 +234,7 @@ def upload_file1(student_id):
     s3_client.upload_fileobj(file, 'chongxinyi-bucket', s3_key)
     
     # Update the resume column in the student table
-    s3_url = f"https://s3.us-east-1.amazonaws.com/{custombucket}.s3.{customregion}.amazonaws.com/{s3_key}"
+    s3_url = f"https://{custombucket}.s3.{customregion}.amazonaws.com/{s3_key}"
     
     cursor = db_conn.cursor()
     try:
