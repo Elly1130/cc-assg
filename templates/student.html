@@ -122,7 +122,19 @@
         class="d-flex"
         style="justify-content: end; padding: 0 50px; margin-bottom: 30px"
       >
-        <div class="" style="width: 300px"></div>
+        <div class="" style="width: 300px">
+              <!-- upload resume  -->
+    <form action="/uploadResume/{{account[0]}}" method="POST" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <input type="submit" value="Upload">
+    </form>
+
+    <!-- upload progress report here -->
+    <form action="/uploadProgressReport/{{account[0]}}" method="POST" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <input type="submit" value="Upload">
+    </form>
+        </div>
       </div>
     </div>
 

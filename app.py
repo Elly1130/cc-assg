@@ -3,6 +3,10 @@ import mysql.connector
 import os
 import boto3
 from config import *
+from botocore import UNSIGNED
+from botocore.client import Config
+import time
+
 
 app = Flask(__name__)
 
@@ -28,9 +32,7 @@ def home():
 def about():
     return render_template('www.tarc.edu.my')
 
-@app.route("/student")
-def student():
-    return render_template('student.html')
+
 
 # ------------------------------------
 # |             STUDENT              |
@@ -132,6 +134,117 @@ def editStudentProfile(student_id):
 @app.route("/studentLogout")
 def studentLogout():
     return redirect(url_for('studentLoginPage'))
+
+
+# upload folder
+# Create an S3 client with unsigned configuration (anonymous)
+s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+
+@app.route('/uploadResume/<student_id>', methods=['POST'])
+def upload_file(student_id):
+    if 'file' not in request.files:
+        return "No file part", 400
+    file = request.files['file']
+    if file.filename == '':
+        return "No selected file", 400
+    
+    if not student_id:
+        return "User not logged in", 403
+    
+    cursor = db_conn.cursor()
+    try:
+        # Retrieve the old resume URL from the database
+        cursor.execute('SELECT resume FROM student WHERE id = %s', (student_id,))
+        result = cursor.fetchone()
+        old_s3_url = result[0] if result else None
+    finally:
+        cursor.close()
+    
+    # Upload the new file to S3
+    s3_key = f"resumes/{student_id}/{file.filename}"
+    s3_client.upload_fileobj(file, 'chongxinyi-bucket', s3_key)
+    
+    # Update the resume column in the student table with correct column name
+    s3_url = f"https://s3.us-east-1.amazonaws.com/{custombucket}.s3.{customregion}.amazonaws.com/{s3_key}"
+    
+    cursor = db_conn.cursor()
+    try:
+        cursor.execute('UPDATE student SET resume = %s WHERE id = %s', (s3_url, student_id))
+        db_conn.commit()
+    finally:
+        cursor.close()
+    
+    # Delete the old file from S3 if it exists
+    if old_s3_url:
+        print("Old S3 URL:", old_s3_url)
+        old_s3_key = old_s3_url.split(f"https://{custombucket}.s3.{customregion}.amazonaws.com/")[1]
+        print("Old S3 Key:", old_s3_key)
+        s3_client.delete_object(Bucket='chongxinyi-bucket', Key=old_s3_key)
+
+    return "File uploaded, database updated, and old file deleted successfully"
+
+#for uploading progress report 
+@app.route('/uploadProgressReport/<student_id>', methods=['POST'])
+def upload_file1(student_id):
+    if 'file' not in request.files:
+        return "No file part", 400
+    file = request.files['file']
+    if file.filename == '':
+        return "No selected file", 400
+    
+    if not student_id:
+        return "User not logged in", 403
+    
+    # Upload the file to S3
+    #test for now
+    s3_key = f"progressReport/{student_id}/{file.filename}"
+    s3_client.upload_fileobj(file, 'chongxinyi-bucket', s3_key)
+    
+    # Update the resume column in the student table
+    s3_url = f"https://s3.us-east-1.amazonaws.com/{custombucket}.s3.{customregion}.amazonaws.com/{s3_key}"
+    
+    cursor = db_conn.cursor()
+    try:
+        cursor.execute('UPDATE student SET progress_report = %s WHERE id = %s', (s3_url, student_id))
+        db_conn.commit()
+    finally:
+        cursor.close()
+
+    return "File uploaded and database updated successfully"
+
+#check if got the correct extension or not
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ------------------------------------
 # |            SUPERVISOR            |
@@ -453,6 +566,151 @@ def addSupervisorFunc(admin_id, supervisor_id):
 
     return redirect(url_for('supervisorList', admin_id=admin_id))
 
+# ------------------------------------
+# |            COMPANY               |
+# ------------------------------------  
+# Route to company login page
+@app.route("/companyLoginPage")
+def companyLoginPage(msg=""):
+    return render_template('companyLogin.html', msg=msg)
+
+# Route to company main page
+@app.route("/companyProfile/<id>")
+def companyProfile(id):
+    print("id",id)
+    cursor = db_conn.cursor()
+    cursor.execute('SELECT * FROM company WHERE id = %s', (id,))
+    account = cursor.fetchone()
+
+    return render_template('companyProfile.html', account=account)
+
+# Company login function
+@app.route("/companyLogin", methods=['GET', 'POST'])
+def companyLogin():
+    email = request.args.get('email')
+    password = request.args.get('password')
+
+    print("email", email)
+    print("pw", password)
+
+
+    cursor = db_conn.cursor()
+
+    try:
+        cursor.execute('SELECT * FROM company WHERE email = %s', (email,))
+        account = cursor.fetchone()
+
+        if account:
+            if password == account[3]:
+                return redirect(url_for('companyProfile', id=account[0]))
+            else:
+                msg = 'Account exists but password incorrect'
+                return redirect(url_for('companyLogin', msg=msg))
+        else:
+            msg = 'Account does not exist'
+            return redirect(url_for('companyLogin', msg=msg))
+    finally:
+        cursor.close()
+    
+# Company register page function
+@app.route("/companyRegisterPage")
+def companyRegisterPage(msg=""):
+    
+    return render_template('companyRegister.html', msg=msg)
+
+
+# Company register function
+@app.route("/companyRegister" , methods=['GET'])
+def companyRegister():
+
+    name = request.args.get('name')
+    email = request.args.get('email')
+    password = request.args.get('password')
+    phone = request.args.get('phone')
+    address = request.args.get('address')
+    postcode = request.args.get('postcode')
+    city = request.args.get('city')
+    state = request.args.get('state')
+
+    cursor = db_conn.cursor()
+
+    try:
+        # Get last company id from database
+        cursor.execute('SELECT id FROM company ORDER BY id DESC LIMIT 1')
+        last_company_id = cursor.fetchone()
+    finally:
+        cursor.close()
+
+    print("last_company_id",last_company_id)
+
+    # if last_company_id is None: then this is the first company to register
+    new_company_id = None
+    if last_company_id is None:
+        # then 000001
+        new_company_id = '000001'
+    else:
+        # Change tuple to integer
+        last_company_id = int(last_company_id[0])
+
+        # Increment last company id by 1
+        last_company_id = last_company_id + 1
+
+        # Change integer back to six character string
+        new_company_id = str(last_company_id).zfill(6)
+
+    print("new_company_id",new_company_id)
+
+    cursor = db_conn.cursor()
+
+    try:
+        # Insert company data into database
+        cursor.execute('INSERT INTO company VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', 
+            (new_company_id, name, email, password, phone, address, postcode, city, state, 0, None))
+        db_conn.commit()
+
+        print('Company added successfully')
+
+        # Display alert message
+        msg = 'Company added successfully'
+
+    finally:
+        cursor.close()
+
+    return redirect(url_for('companyLoginPage', msg=msg))
+
+# Comapny edit profile function
+@app.route("/editCompanyProfile/<company_id>")
+def editCompanyProfile(company_id):
+    print(company_id)
+
+    # Get user input name, email and phone number from HTML form
+    name = request.args.get('name')
+    email = request.args.get('email')
+    password = request.args.get('password')
+    phone = request.args.get('phone')
+    address = request.args.get('address')
+    postcode = request.args.get('postcode')
+    city = request.args.get('city')
+    state = request.args.get('state')
+
+    cursor = db_conn.cursor()
+
+    try:
+        # Update company data in database
+        cursor.execute('UPDATE company SET name = %s, email = %s, password = %s, phone = %s, address = %s, postcode = %s, city = %s, state = %s WHERE id = %s', 
+            (name, email, password, phone, address, postcode, city, state, company_id))
+        db_conn.commit()
+    finally:
+        cursor.close()
+
+    return redirect(url_for('companyProfile', id=company_id))
+
+# Company logout function
+@app.route("/companyLogout")
+def comapnyLogout():
+    return redirect(url_for('companyLoginPage'))
+
+
 @app.route("/xy")
 def xyPortfolio():
     return render_template('xy-portfolio.html')
@@ -472,6 +730,11 @@ def jtPortfolio():
 @app.route("/yk")
 def ykPortfolio():
     return render_template('yk-portfolio.html')
+
+
+
+
+
 
 
 if __name__ == '__main__':
