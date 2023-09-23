@@ -23,6 +23,8 @@
       rel="stylesheet"
     />
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/boxicons/boxicons/css/boxicons.min.css">
+
     <!-- Icon Font Stylesheet -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
@@ -60,6 +62,54 @@
     />
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <style>
+.uploadWrapper {
+    display: flex;
+    gap: 10px; /* Space between the label and button */
+  }
+
+  .uploadLabel {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #f0f0f0; /* Light grey background */
+    color: black; /* Black text */
+    cursor: pointer;
+    text-align: center;
+    width: 250px; /* Set width as per your requirement */
+    box-sizing: border-box;
+    border: none;
+    margin-bottom: 10px;
+  }
+
+  .uploadLabel:hover {
+    background-color: #d0d0d0; /* Slightly darker grey for hover effect */
+  }
+
+  .uploadBtn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #ab7442; /* Custom brown background */
+    color: white; /* White text */
+    cursor: pointer;
+    text-align: center;
+    width: 150px; /* Set width as per your requirement */
+    box-sizing: border-box;
+    border: none;
+    margin-bottom: 10px;
+  }
+
+  .uploadBtn:hover {
+    background-color: #996633; /* Slightly darker brown for hover effect */
+  }
+
+  .fileName {
+    margin-left: 10px;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+    </style>
   </head>
 
   <body>
@@ -113,29 +163,11 @@
 
     <div
       class="bg-light"
-      style="height: calc(100vh - 75px); width: 100%; overflow: scroll"
+      style="height: calc(-150vh + 75px); width: 100%; overflow: scroll"
     >
       <h1 style="margin-top: 30px; margin-left: 50px; margin-bottom: 30px">
         Select Supervisor
       </h1>
-      <div
-        class="d-flex"
-        style="justify-content: end; padding: 0 50px; margin-bottom: 30px"
-      >
-        <div class="" style="width: 300px">
-              <!-- upload resume  -->
-    <form action="/uploadResume/{{account[0]}}" method="POST" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="Upload">
-    </form>
-
-    <!-- upload progress report here -->
-    <form action="/uploadProgressReport/{{account[0]}}" method="POST" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="Upload">
-    </form>
-        </div>
-      </div>
     </div>
 
     <div class="container my-4">
@@ -161,23 +193,95 @@
             <option value="" selected disabled hidden>Choose here</option>
             <!-- If supervisor selected -->
             {% if account[9] %}
-            <option value="{{ account[9] }}" selected>{{ account[10] }}</option>
+            <option value="{{ account[9] }}" selected>{{ account[9] }}</option>
             {% else %} {% for supervisor in supervisors %}
             <option value="{{ supervisor[0] }}">{{ supervisor[1] }}</option>
             {% endfor %} {% endif %}
           </select>
         </div>
         {% if not account[9] %}
-        <button type="submit" class="btn btn-primary text-white">
+        <button type="submit" class="btn btn-primary text-white" id="supervisorBtn">
           Select Supervisor
         </button>
         {% endif %} {% if account[9] %}
-        <button type="submit" class="btn btn-primary text-white" disabled>
-          Select Supervisor
+        <button type="submit" class="btn btn-primary text-white" id="supervisorBtn" disabled>
+          Selected
         </button>
         {% endif %} {% if not account[9] %} {% endif %}
       </form>
     </div>
+
+    <div class="container my-4">
+      <form method="POST" action="/select-company">
+        <input type="hidden" name="id" value="{{ account[0] }}" />
+        <div class="mb-3">
+          <label for="company" class="form-label"
+            >Choose a Company:</label
+          >
+          <select
+            name="company"
+            id="company"
+            class="form-select"
+            {%
+            if
+            account[8]
+            %}
+            disabled
+            {%
+            endif
+            %}
+          >
+            <option value="" selected disabled hidden>Choose here</option>
+            <!-- If company selected -->
+            {% if account[8] %}
+            <option value="{{ account[8] }}" selected>{{ account[8] }}</option>
+            {% else %} {% for company in companies %}
+            <option value="{{ company[0] }}">{{ company[1] }}</option>
+            {% endfor %} {% endif %}
+          </select>
+        </div>
+        {% if not account[8] %}
+        <button type="submit" class="btn btn-primary text-white" id="companyBtn">
+          Select Company
+        </button>
+        {% endif %} {% if account[8] %}
+        <button type="submit" class="btn btn-primary text-white"id="companyBtn" disabled>
+          Selected
+        </button>
+        {% endif %} {% if not account[8] %} {% endif %}
+      </form>
+    </div>
+
+    <div class="container my-4">
+      <div class="uploadButton">
+        <form action="/uploadResume/{{account[0]}}" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" id="fileInput1" style="display: none;" value="{{ account[0] }}">
+          <div class="uploadWrapper">
+            <label for="fileInput1" class="uploadLabel">
+              <i class='bx bx-upload'></i> Choose Resume
+            </label>
+            <button type="submit" class="uploadBtn" id="resumeUploadBtn">Upload</button>
+            <span id="resumeFileName" class="fileName"></span>
+          </div>
+        </form>
+      
+        <form action="/uploadProgressReport/{{account[0]}}" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" id="fileInput2" style="display: none;" value="{{ account[0] }}">
+          <div class="uploadWrapper">
+            <label for="fileInput2" class="uploadLabel">
+              <i class='bx bx-upload'></i> Choose Progress Report
+            </label>
+            <button type="submit" class="uploadBtn" id="reportUploadBtn">Upload</button>
+            <span id="progressReportFileName" class="fileName"></span>
+          </div>
+        </form>
+      </div>
+      
+    </div>
+    
+    
+    
+    
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -193,20 +297,71 @@
     <!-- Template Javascript -->
     <script src="{{ url_for('static', filename='js/main.js/') }}"></script>
     <script>
-      // JavaScript to enable the edit button and the "Select Supervisor" button
       document.addEventListener('DOMContentLoaded', function () {
         var editBtn = document.getElementById('edit-supervisor');
         var supervisorSelect = document.getElementById('supervisor');
-        var selectSupervisorBtn = document.querySelector(
-          "button[type='submit']",
-        );
-
+        var selectSupervisorBtn = document.getElementById('supervisorBtn');
+        
+        var editBtn1 = document.getElementById('edit-company');
+        var companySelect = document.getElementById('company');
+        var selectCompanyBtn = document.getElementById('companyBtn');
+      
         editBtn.addEventListener('click', function (event) {
           event.preventDefault();
           supervisorSelect.removeAttribute('disabled');
           selectSupervisorBtn.removeAttribute('disabled');
         });
+      
+        editBtn1.addEventListener('click', function (event) {
+          event.preventDefault();
+          companySelect.removeAttribute('disabled');
+          selectCompanyBtn.removeAttribute('disabled');
+        });
       });
-    </script>
+      document.addEventListener('DOMContentLoaded', function () {
+    // Elements
+    var resumeFileInput = document.getElementById('fileInput1');
+    var resumeFileNameSpan = document.getElementById('resumeFileName');
+    var progressReportFileInput = document.getElementById('fileInput2');
+    var progressReportFileNameSpan = document.getElementById('progressReportFileName');
+
+    var supervisorSelect = document.getElementById('supervisor');
+    var companySelect = document.getElementById('company');
+
+    var uploadResumeBtn = document.getElementById('resumeUploadBtn');
+    var uploadProgressReportBtn = document.getElementById('reportUploadBtn');
+
+    // Event Listener to display the selected resume file name
+    resumeFileInput.addEventListener('change', function () {
+        var fileName = resumeFileInput.files.length > 0 ? resumeFileInput.files[0].name : '';
+        resumeFileNameSpan.textContent = fileName;
+    });
+
+    // Event Listener to display the selected progress report file name
+    progressReportFileInput.addEventListener('change', function () {
+        var fileName = progressReportFileInput.files.length > 0 ? progressReportFileInput.files[0].name : '';
+        progressReportFileNameSpan.textContent = fileName;
+    });
+
+    function updateUploadButtons() {
+        var supervisorSelected = supervisorSelect.value !== "";
+        var companySelected = companySelect.value !== "";
+
+        // Update the buttons based on the selections
+        uploadResumeBtn.disabled = !supervisorSelected;
+        uploadProgressReportBtn.disabled = !(supervisorSelected && companySelected);
+
+        uploadResumeBtn.style.backgroundColor = supervisorSelected ? '#ab7442' : '#d0d0d0';
+        uploadProgressReportBtn.style.backgroundColor = (supervisorSelected && companySelected) ? '#ab7442' : '#d0d0d0';
+    }
+
+    supervisorSelect.addEventListener('change', updateUploadButtons);
+    companySelect.addEventListener('change', updateUploadButtons);
+    
+    updateUploadButtons();  // To set initial states
+});
+
+     
+      </script>
   </body>
 </html>

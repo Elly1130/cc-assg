@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import mysql.connector
 import os
 import boto3
@@ -33,7 +33,6 @@ def about():
     return render_template('www.tarc.edu.my')
 
 
-
 # ------------------------------------
 # |             STUDENT              |
 # ------------------------------------
@@ -50,11 +49,14 @@ def student(id):
     account = cursor.fetchone()
     cursor.execute('SELECT * FROM supervisor')
     supervisor = cursor.fetchall()
+
+    cursor.execute('SELECT * FROM company')
+    company = cursor.fetchall()
     
     # Get the success message from the query parameters
     success_message = request.args.get('success_message', None)
 
-    return render_template('student.html', account=account, supervisors=supervisor, success_message=success_message)
+    return render_template('student.html', account=account, supervisors=supervisor, companies=company,success_message=success_message)
 
 # Route to student profile page
 @app.route("/studentProfile/<student_id>")
@@ -68,11 +70,15 @@ def studentProfile(student_id):
 
         cursor.execute('SELECT * FROM supervisor WHERE id = %s', (account[9],))
         supervisor = cursor.fetchone() 
+
+        cursor.execute('SELECT * FROM company WHERE id = %s', (account[8],))
+        company = cursor.fetchone() 
+        
     finally:
         cursor.close()
 
     print(account[0])
-    return render_template('studentProfile.html', student=account, supervisor=supervisor)
+    return render_template('studentProfile.html', student=account, supervisor=supervisor, company=company)
 
 # Student login function
 @app.route("/studentLogin", methods=['GET'])
@@ -109,19 +115,38 @@ def selectSupervisor():
     # Redirect to the student page with the success message as a query parameter
     return redirect(url_for('student', id=id, success_message=success_message))
 
+
+@app.route("/select-company", methods=['POST'])
+def selectCompany():
+    id = request.form['id']
+    company = request.form['company']
+    cursor = db_conn.cursor()
+    cursor.execute('UPDATE student SET company_id = %s WHERE id = %s', (company, id))
+    db_conn.commit()
+    
+    # Set a success message
+    success_message = "Company selection was successful!"
+    
+    # Redirect to the student page with the success message as a query parameter
+    return redirect(url_for('student', id=id, success_message=success_message))
+
 # Student edit profile function
-@app.route("/editStudentProfile/<student_id>")
+@app.route("/editStudentProfile/<student_id>", methods=['POST'])
 def editStudentProfile(student_id):
-    # Get user input name, email and phone number from HTML form
-    name = request.args.get('name')
-    email = request.args.get('email')
-    phone = request.args.get('phone')
+    # Get user input name, email, phone number, and company_id from HTML form
+    name = request.form.get('name')
+    email = request.form.get('email')
+    phone = request.form.get('phone')
 
     # Connect to MySQL database
     cursor = db_conn.cursor()
 
     try:
-        cursor.execute('UPDATE student SET name = %s, email = %s, phone_number = %s WHERE id = %s', (name, email, phone, student_id))
+        # Update student information including company_id
+        cursor.execute(
+            'UPDATE student SET name = %s, email = %s, phone_number = %s WHERE id = %s',
+            (name, email, phone, student_id)
+        )
         db_conn.commit()
 
     finally:
@@ -143,6 +168,8 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 @app.route('/uploadResume/<student_id>', methods=['POST'])
 def upload_file(student_id):
+    id = request.args.get('fileInput1')
+
     if 'file' not in request.files:
         return "No file part", 400
     file = request.files['file']
@@ -175,18 +202,23 @@ def upload_file(student_id):
     finally:
         cursor.close()
     
-    # Delete the old file from S3 if it exists
-    if old_s3_url:
-        print("Old S3 URL:", old_s3_url)
-        old_s3_key = old_s3_url.split(f"https://{custombucket}.s3.{customregion}.amazonaws.com/")[1]
-        print("Old S3 Key:", old_s3_key)
-        s3_client.delete_object(Bucket='chongxinyi-bucket', Key=old_s3_key)
+    # # Delete the old file from S3 if it exists
+    # if old_s3_url:
+    #     print("Old S3 URL:", old_s3_url)
+    #     old_s3_key = old_s3_url.split(f"https://{custombucket}.s3.{customregion}.amazonaws.com/")
+    #     print("Old S3 Key:", old_s3_key)
+    #     s3_client.delete_object(Bucket='chongxinyi-bucket', Key=old_s3_key)
 
-    return "File uploaded, database updated, and old file deleted successfully"
+        # Set a success message
+    success_message = "Upload Resume was successful!"
+    
+    # Redirect to the student page with the success message as a query parameter
+    return redirect(url_for('student', id=student_id, success_message=success_message))
 
 #for uploading progress report 
 @app.route('/uploadProgressReport/<student_id>', methods=['POST'])
 def upload_file1(student_id):
+    id = request.args.get('fileInput2')
     if 'file' not in request.files:
         return "No file part", 400
     file = request.files['file']
@@ -211,40 +243,14 @@ def upload_file1(student_id):
     finally:
         cursor.close()
 
-    return "File uploaded and database updated successfully"
+    success_message = "Upload Progress Report was successful!"
+    
+    # Redirect to the student page with the success message as a query parameter
+    return redirect(url_for('student', id=student_id, success_message=success_message))
 
 #check if got the correct extension or not
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # ------------------------------------
 # |            SUPERVISOR            |
@@ -730,12 +736,6 @@ def jtPortfolio():
 @app.route("/yk")
 def ykPortfolio():
     return render_template('yk-portfolio.html')
-
-
-
-
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

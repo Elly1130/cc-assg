@@ -223,12 +223,41 @@
                   />
                 </div>
                 <div class="col-12">
+                  <label for="id" style="margin-bottom: 10px"
+                    >Company ID:</label
+                  >
+                  <input
+                    id="id"
+                    name="id"
+                    type="text"
+                    class="form-control border-0"
+                    placeholder="Company Id"
+                    value="{{ company[0] }}"
+                    style="height: 55px"
+                    disabled
+                  />
+                </div>
+                <div class="col-12">
+                  <label for="id" style="margin-bottom: 10px"
+                    >Company Name:</label
+                  >
+                  <input
+                    id="id"
+                    name="id"
+                    type="text"
+                    class="form-control border-0"
+                    placeholder="Company Name"
+                    value="{{ company[1] }}"
+                    style="height: 55px"
+                    disabled
+                  />
+                </div>
+                <div class="col-12">
                   <button
                     id="submit-button"
                     class="btn btn-primary w-100 py-3"
                     type="submit"
-                    onclick="return submitEdit()"
-                  >
+                    onclick="return submitEdit()">
                     Edit Profile
                   </button>
                 </div>
